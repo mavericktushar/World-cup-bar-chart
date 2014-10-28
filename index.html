@@ -1,0 +1,292 @@
+<html>
+
+<head>
+
+	<title>
+	World Cup over the years
+	</title>
+	
+	<link href="css/bar-style.css" rel="stylesheet" type="text/css" />
+	
+	<script src="jquery.min.js"></script>
+	
+	<script>
+	
+	$(document).ready( function() {
+	
+	/*abc();
+	
+	function abc() {
+		alert('Hellooooo');
+	}  */
+	
+	createGraph('#world-cup-table', '.chart');
+	
+	//function to create Graph
+	function createGraph(data, container) {
+		//alert('createGraph()');
+		
+		//Variables
+		//and container elements
+		var bars = [];
+		var figureContainer = $('<div id="figure"></div>');
+		var graphContainer  = $('<div class="graph"></div>');
+		var barContainer    = $('<div class="bars"></div>');
+		var data = $(data);
+		var container = $(container);
+		var chartData;
+		var chartYMax;
+		var columnGroups;
+		
+		var worldCupTableData = {
+		
+			//Get table cells data
+			columnGroups: function()
+			{
+			
+				var columnGroups = [];
+				
+				//Get number of Columns
+				var clmns = data.find('tbody tr:eq(0) td').length;
+				
+				for( var i = 0; i < clmns; i++ )
+				{
+					columnGroups[i] = [];
+					
+					data.find('tbody tr').each(function() {
+						columnGroups[i].push($(this).find('td').eq(i).text());
+					});
+				}
+				
+				return columnGroups;
+			},
+			
+			//Get Heading from Table Caption
+			chartHeading: function()
+			{
+				var chartHeading = data.find('caption').text();
+				return chartHeading;
+			},
+			
+			//Get Graph legend from table body(Teams, Matches and Goals)
+			chartLegend: function()
+			{
+				var chartLegend = [];
+				
+				data.find('tbody th').each( function() {
+					chartLegend.push($(this).text());
+				});
+				
+				return chartLegend;
+			},
+			
+			//Get chart data
+			chartData: function()
+			{
+				var chartData = [];
+				
+				data.find('tbody td').each( function() {
+					chartData.push($(this).text());
+				});
+				
+				return chartData;
+			},
+		     
+			//Get highest value for y-axis
+			chartYMax: function()
+			{
+				var chartData = this.chartData();
+				
+				var chartYMax;
+				chartYMax = Math.ceil(Math.max.apply(Math, chartData) / 100 ) * 100;
+				return chartYMax;
+			},
+			
+			//Get x-axis data from table header
+			xLegend: function()
+			{
+				var xLegend = [];
+				
+				data.find('thead th').each( function() {
+					xLegend.push($(this).text());
+				});
+				
+				return xLegend;
+			},
+			
+			//Get y-axis 
+			yLegend: function()
+			{
+				var chartYMax = this.chartYMax();
+				
+				var yLegend = [];
+				var yAxisMarkings = 5;
+				
+				for( var i = 0; i < yAxisMarkings; i++) {
+					yLegend.unshift( ( ( chartYMax * i ) / ( yAxisMarkings - 1 ) ) );
+				}
+				
+				return yLegend;
+			}
+		}
+		
+		//useful variables for accesing table data
+		chartData = worldCupTableData.chartData();
+		chartYMax = worldCupTableData.chartYMax();
+		//alert(chartData);
+		//alert(chartYMax);
+		columnGroups = worldCupTableData.columnGroups();
+		
+		//Start constructing the Bar Chart
+
+		//Loop through columnGroups
+		$.each(columnGroups, function(i) {
+			var barGroup = $('<div class="bar-group"></div>');
+			
+			for( var j = 0; j < columnGroups[i].length; j++)
+			{
+				var barObj = {};
+				
+				barObj.label = this[j];
+				barObj.height = ( (barObj.label / chartYMax) * 100 ) + '%';
+				barObj.bar = $('<div class="bar fig' + j + '"><span>' + barObj.label + '</span></div>').appendTo(barGroup);
+				bars.push(barObj);
+			}
+			
+			//Add bars to graph
+			barGroup.appendTo(barContainer);
+		});
+
+		//Add heading
+		var chartHeading = worldCupTableData.chartHeading();
+		
+		var heading = $('<h4> ' + chartHeading + ' </h4>');
+		heading.appendTo(figureContainer);
+		
+		//alert('heading');
+
+		var chartLegend = worldCupTableData.chartLegend();
+		var legendList = $('<ul class="legend"></ul>');
+
+		$.each(chartLegend, function(i) {
+			$('<li> <span class="icon fig' + i + '"> </span>' + this + '</li>').appendTo(legendList);
+		});
+
+		legendList.appendTo(figureContainer);
+		
+		//add x-axis to graph
+		var xLegend = worldCupTableData.xLegend();
+		var xAxisList = $('<ul class="x-axis"></ul>');
+		$.each(xLegend, function(i) {
+			var listItem = $('<li><span>' + this + '</span></li>').appendTo(xAxisList);
+		});
+		xAxisList.appendTo(graphContainer);
+		//alert('xlegend');
+		
+		//add y-axis to graph
+		var yLegend = worldCupTableData.yLegend();
+		var yAxisList = $('<ul class="y-axis"></ul>');
+		$.each(yLegend, function(i) {
+			var listItem = $('<li><span>' + this + '</span></li>').appendTo(yAxisList);
+		});
+		yAxisList.appendTo(graphContainer);
+		
+		//add bars to graph
+		barContainer.appendTo(graphContainer);
+		
+		//add graph to figure
+		graphContainer.appendTo(figureContainer);
+
+		//add figure to main container
+		figureContainer.appendTo(container);
+		
+		displayGraph(bars, 0);
+	}
+	
+	function displayGraph(bars, i) {
+		//alert('displayGraph()');
+		if( i < bars.length ) {
+			$(bars[i].bar).animate({
+				height: bars[i].height
+			}, 
+			800);
+			
+			setTimeout( function() {
+				i++;
+				displayGraph(bars, i);
+			},
+			100);
+		}
+	}  
+
+	});
+	
+	</script>
+
+</head>
+
+<body>
+
+	<div id="tablestyle">
+	
+	<div class="chart">
+		
+		<h3> World Cup Football Statistics over the Years </h3>
+		
+		<table id="world-cup-table" cellpadding="10" border="1" cellspacing="0" summary="Number of Teams, Matches and Goals for the 1930, 1950, 1970, 1990 and 2010 World Cup">
+		
+		<caption> Football world cup statistics </caption>
+		
+			<thead>
+			
+			<tr>
+				<td> &nbsp; </td>
+				<th scope="col"> 1930 </th>
+				<th scope="col"> 1950 </th>
+				<th scope="col"> 1970 </th>
+				<th scope="col"> 1990 </th>
+				<th scope="col"> 2010 </th>
+			</tr>
+			
+			</thead>
+			
+			<tbody>
+			
+			<tr>
+				<th scope="row"> Teams </th>
+				<td> 13 </td>
+				<td> 13 </td>
+				<td> 16 </td>
+				<td> 24 </td>
+				<td> 32 </td>
+			</tr>
+			
+			<tr>
+				<th scope="row"> Matches </th>
+				<td> 18 </td>
+				<td> 22 </td>
+				<td> 32 </td>
+				<td> 52 </td>
+				<td> 64 </td>
+			</tr>
+			
+			<tr>
+				<th scope="row"> Goals </th>
+				<td> 70 </td>
+				<td> 88 </td>
+				<td> 95 </td>
+				<td> 115 </td>
+				<td> 145 </td>
+			</tr>
+			
+			</tbody>
+		
+		</table>
+		
+	</div>
+	
+	</div>
+
+</body>
+
+</html>
